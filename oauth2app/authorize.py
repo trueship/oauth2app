@@ -192,10 +192,10 @@ class Authorizer(object):
             raise InvalidRequest('response_type is a required parameter.')
         if self.response_type not in ["code", "token"]:
             raise InvalidRequest("No such response type %s" % self.response_type)
-        # Response type
-        if self.authorized_response_type & RESPONSE_TYPES[self.response_type] == 0:
+        # Response type - 'Remove this exception to respond to token requests too'
+        '''if self.authorized_response_type & RESPONSE_TYPES[self.response_type] == 0:
             raise UnauthorizedClient("Response type %s not allowed." %
-                self.response_type)
+                self.response_type)'''
         if not absolute_http_url_re.match(self.redirect_uri):
             raise InvalidRequest('Absolute URI required for redirect_uri')
         # Scope

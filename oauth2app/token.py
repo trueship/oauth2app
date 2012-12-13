@@ -71,7 +71,7 @@ class InvalidScope(AccessTokenException):
 
 
 @csrf_exempt
-def handler(request):
+def handler(request, code_key=None):
     """Token access handler. Conveneince function that wraps the Handler()
     callable.
 
@@ -79,7 +79,10 @@ def handler(request):
 
     * *request:* Django HttpRequest object.
     """
-    return TokenGenerator()(request)
+    if code_key:
+        return TokenGenerator()(request, code_key)
+    else:
+        return TokenGenerator()(request)
 
 
 class TokenGenerator(object):
@@ -103,6 +106,7 @@ class TokenGenerator(object):
 
     valid = False
     code = None
+    code_key = None
     client = None
     access_token = None
     user = None
@@ -127,7 +131,7 @@ class TokenGenerator(object):
             self.authorized_scope = set([x.key for x in scope])
 
     @csrf_exempt
-    def __call__(self, request):
+    def __call__(self, request, code_key=None):
         """Django view that handles the token endpoint. Returns a JSON formatted
         authorization code.
 
@@ -143,7 +147,10 @@ class TokenGenerator(object):
         if self.scope is not None:
             self.scope = set(self.scope.split())
         # authorization_code, see 4.1.3.  Access Token Request
-        self.code_key = request.REQUEST.get('code')
+        if code_key:
+            self.code_key = code_key
+        else:
+            self.code_key = request.REQUEST.get('code')
         self.redirect_uri = request.REQUEST.get('redirect_uri')
         # refresh_token, see 6.  Refreshing an Access Token
         self.refresh_token = request.REQUEST.get('refresh_token')

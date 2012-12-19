@@ -134,7 +134,10 @@ class Authorizer(object):
 
         *Returns HTTP Response redirect*"""
         try:
-            self.validate(request)
+            if request.META['CONTENT_TYPE'] == 'application/json':
+                self.validate_json(request)
+            else:
+                self.validate(request)
         except AuthorizationException, e:
             # The request is malformed or invalid. Automatically
             # redirects to the provided redirect URL.
@@ -158,6 +161,34 @@ class Authorizer(object):
         if self.scope is not None:
             self.scope = set(self.scope.split())
         self.state = request.REQUEST.get('state')
+        self.user = request.user
+        self.request = request
+        try:
+            self._validate()
+        except AuthorizationException, e:
+            self._check_redirect_uri()
+            self.error = e
+            raise e
+        self.valid = True
+
+    def validate_json(self, request):
+        """Validate a json request. Raises an AuthorizationException if the
+        request fails authorization, or a MissingRedirectURI if no
+        redirect_uri is available.
+
+        **Args:**
+
+        * *request:* Django HttpRequest object.
+
+        *Returns None*"""
+        data = json.loads(request.body)
+        self.response_type = data.get('response_type')
+        self.client_id = data.get('client_id')
+        self.redirect_uri = data.get('redirect_uri')
+        self.scope = data.get('scope')
+        if self.scope is not None:
+            self.scope = set(self.scope.split())
+        self.state = data.get('state')
         self.user = request.user
         self.request = request
         try:

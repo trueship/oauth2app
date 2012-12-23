@@ -171,7 +171,7 @@ class Authorizer(object):
             raise e
         self.valid = True
 
-    def validate_json(self, request):
+    def validate_json(self, request, data):
         """Validate a json request. Raises an AuthorizationException if the
         request fails authorization, or a MissingRedirectURI if no
         redirect_uri is available.
@@ -181,7 +181,6 @@ class Authorizer(object):
         * *request:* Django HttpRequest object.
 
         *Returns None*"""
-        data = json.loads(request.body)
         self.response_type = data.get('response_type')
         self.client_id = data.get('client_id')
         self.redirect_uri = data.get('redirect_uri')

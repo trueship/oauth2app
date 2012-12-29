@@ -7,7 +7,7 @@
 try: import simplejson as json
 except ImportError: import json
 from base64 import b64encode
-from django.http import HttpResponse
+from django.http import absolute_http_url_re, HttpResponse
 from django.contrib.auth import authenticate
 from django.views.decorators.csrf import csrf_exempt
 from .exceptions import OAuth2Exception
@@ -219,6 +219,14 @@ class TokenGenerator(object):
             self.client = Client.objects.get(key=self.client_id)
         except Client.DoesNotExist:
             raise InvalidClient("client_id %s doesn't exist" % self.client_id)
+        
+        # Check/Set redirect uri
+        if self.redirect_uri is None:
+            if self.client.redirect_uri is None:
+                raise MissingRedirectURI("No redirect_uri"
+                    "provided or registered.")
+            else:
+                self.redirect_uri = self.client.redirect_uri
         # Scope
         if self.scope is not None:
             access_ranges = AccessRange.objects.filter(key__in=self.scope)
@@ -273,6 +281,8 @@ class TokenGenerator(object):
             raise InvalidRequest('No redirect_uri')
         if normalize(self.redirect_uri) != normalize(self.code.redirect_uri):
             raise InvalidRequest("redirect_uri doesn't match")
+        if not absolute_http_url_re.match(self.redirect_uri):
+            raise InvalidRequest('Absolute URI required for redirect_uri')
 
     def _validate_password(self):
         """Validate a password request."""

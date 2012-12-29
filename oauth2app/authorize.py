@@ -211,7 +211,7 @@ class Authorizer(object):
             if self.client.redirect_uri is None:
                 raise MissingRedirectURI("No redirect_uri"
                     "provided or registered.")
-        elif self.client.redirect_uri is not None:
+        elif self.client.redirect_uri is not None and self.redirect_uri is not None:
             if normalize(self.redirect_uri) != normalize(self.client.redirect_uri):
                 self.redirect_uri = self.client.redirect_uri
                 raise InvalidRequest("Registered redirect_uri doesn't "

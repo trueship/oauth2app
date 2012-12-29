@@ -71,7 +71,7 @@ class InvalidScope(AccessTokenException):
 
 
 @csrf_exempt
-def handler(request, code_key=None):
+def handler(request, data=None, code_key=None):
     """Token access handler. Conveneince function that wraps the Handler()
     callable.
 
@@ -80,7 +80,7 @@ def handler(request, code_key=None):
     * *request:* Django HttpRequest object.
     """
     if code_key:
-        return TokenGenerator()(request, code_key)
+        return TokenGenerator()(request, data, code_key)
     else:
         return TokenGenerator()(request)
 
@@ -131,7 +131,7 @@ class TokenGenerator(object):
             self.authorized_scope = set([x.key for x in scope])
 
     @csrf_exempt
-    def __call__(self, request, code_key=None):
+    def __call__(self, request, data=None, code_key=None):
         """Django view that handles the token endpoint. Returns a JSON formatted
         authorization code.
 
@@ -140,26 +140,49 @@ class TokenGenerator(object):
         * *request:* Django HttpRequest object.
 
         """
-        self.grant_type = request.REQUEST.get('grant_type')
-        self.client_id = request.REQUEST.get('client_id')
-        self.client_secret = request.POST.get('client_secret')
-        self.scope = request.REQUEST.get('scope')
+        if data:
+            self.grant_type = data.get('grant_type')
+            self.client_id = data.get('client_id')
+            self.client_secret = data.get('client_secret')
+            self.scope = data.get('scope')
+
+            # authorization_code, see 4.1.3.  Access Token Request
+            if code_key:
+                self.code_key = code_key
+            else:
+                self.code_key = data.get('code')
+            self.redirect_uri = data.get('redirect_uri')
+            # refresh_token, see 6.  Refreshing an Access Token
+            self.refresh_token = data.get('refresh_token')
+            # password, see 4.3.2. Access Token Request
+            self.email = data.get('email')
+            self.username = data.get('username')
+            self.password = data.get('password')
+            # Optional json callback
+            self.callback = data.get('callback')
+        else:
+            self.grant_type = request.REQUEST.get('grant_type')
+            self.client_id = request.REQUEST.get('client_id')
+            self.client_secret = request.POST.get('client_secret')
+            self.scope = request.REQUEST.get('scope')
+
+            # authorization_code, see 4.1.3.  Access Token Request
+            if code_key:
+                self.code_key = code_key
+            else:
+                self.code_key = request.REQUEST.get('code')
+            self.redirect_uri = request.REQUEST.get('redirect_uri')
+            # refresh_token, see 6.  Refreshing an Access Token
+            self.refresh_token = request.REQUEST.get('refresh_token')
+            # password, see 4.3.2. Access Token Request
+            self.email = request.REQUEST.get('email')
+            self.username = request.REQUEST.get('username')
+            self.password = request.REQUEST.get('password')
+            # Optional json callback
+            self.callback = request.REQUEST.get('callback')
+        
         if self.scope is not None:
             self.scope = set(self.scope.split())
-        # authorization_code, see 4.1.3.  Access Token Request
-        if code_key:
-            self.code_key = code_key
-        else:
-            self.code_key = request.REQUEST.get('code')
-        self.redirect_uri = request.REQUEST.get('redirect_uri')
-        # refresh_token, see 6.  Refreshing an Access Token
-        self.refresh_token = request.REQUEST.get('refresh_token')
-        # password, see 4.3.2. Access Token Request
-        self.email = request.REQUEST.get('email')
-        self.username = request.REQUEST.get('username')
-        self.password = request.REQUEST.get('password')
-        # Optional json callback
-        self.callback = request.REQUEST.get('callback')
         self.request = request
         try:
             self.validate()

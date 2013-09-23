@@ -1,5 +1,5 @@
 #-*- coding: utf-8 -*-
-from django.conf.urls.defaults import patterns, url
+from django.conf.urls import patterns, url
 
 urlpatterns = patterns('testsite.apps.api.views',
     (r'^automatic_error_str/?$',        'automatic_error_str'),

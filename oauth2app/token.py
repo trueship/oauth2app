@@ -7,7 +7,11 @@
 try: import simplejson as json
 except ImportError: import json
 from base64 import b64encode
-from django.http import absolute_http_url_re, HttpResponse
+from django.http import HttpResponse
+try:
+    from django.http.request import absolute_http_url_re  # Django 1.5+
+except ImportError:
+    from django.http import absolute_http_url_re
 from django.contrib.auth import authenticate
 from django.views.decorators.csrf import csrf_exempt
 from .exceptions import OAuth2Exception

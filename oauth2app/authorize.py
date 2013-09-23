@@ -4,9 +4,11 @@
 """OAuth 2.0 Authorization"""
 
 
-try: import simplejson as json
-except ImportError: import json
-from django.http import absolute_http_url_re, HttpResponseRedirect
+from django.http import HttpResponseRedirect
+try:
+    from django.http.request import absolute_http_url_re  # Django 1.5+
+except ImportError:
+    from django.http import absolute_http_url_re
 from urllib import urlencode
 from .consts import ACCESS_TOKEN_EXPIRATION, REFRESHABLE
 from .consts import CODE, TOKEN, CODE_AND_TOKEN
@@ -134,11 +136,8 @@ class Authorizer(object):
 
         *Returns HTTP Response redirect*"""
         try:
-            if request.META['CONTENT_TYPE'] == 'application/json':
-                self.validate_json(request)
-            else:
-                self.validate(request)
-        except AuthorizationException, e:
+            self.validate(request)
+        except AuthorizationException:
             # The request is malformed or invalid. Automatically
             # redirects to the provided redirect URL.
             return self.error_redirect()
@@ -165,34 +164,7 @@ class Authorizer(object):
         self.request = request
         try:
             self._validate()
-        except AuthorizationException, e:
-            self._check_redirect_uri()
-            self.error = e
-            raise e
-        self.valid = True
-
-    def validate_json(self, request, data):
-        """Validate a json request. Raises an AuthorizationException if the
-        request fails authorization, or a MissingRedirectURI if no
-        redirect_uri is available.
-
-        **Args:**
-
-        * *request:* Django HttpRequest object.
-
-        *Returns None*"""
-        self.response_type = data.get('response_type')
-        self.client_id = data.get('client_id')
-        self.redirect_uri = data.get('redirect_uri')
-        self.scope = data.get('scope')
-        if self.scope is not None:
-            self.scope = set(self.scope.split())
-        self.state = data.get('state')
-        self.user = request.user
-        self.request = request
-        try:
-            self._validate()
-        except AuthorizationException, e:
+        except AuthorizationException as e:
             self._check_redirect_uri()
             self.error = e
             raise e
@@ -211,7 +183,7 @@ class Authorizer(object):
             if self.client.redirect_uri is None:
                 raise MissingRedirectURI("No redirect_uri"
                     "provided or registered.")
-        elif self.client.redirect_uri is not None and self.redirect_uri is not None:
+        elif self.client.redirect_uri is not None:
             if normalize(self.redirect_uri) != normalize(self.client.redirect_uri):
                 self.redirect_uri = self.client.redirect_uri
                 raise InvalidRequest("Registered redirect_uri doesn't "
@@ -222,10 +194,10 @@ class Authorizer(object):
             raise InvalidRequest('response_type is a required parameter.')
         if self.response_type not in ["code", "token"]:
             raise InvalidRequest("No such response type %s" % self.response_type)
-        # Response type - 'Remove this exception to respond to token requests too'
-        '''if self.authorized_response_type & RESPONSE_TYPES[self.response_type] == 0:
+        # Response type
+        if self.authorized_response_type & RESPONSE_TYPES[self.response_type] == 0:
             raise UnauthorizedClient("Response type %s not allowed." %
-                self.response_type)'''
+                self.response_type)
         if not absolute_http_url_re.match(self.redirect_uri):
             raise InvalidRequest('Absolute URI required for redirect_uri')
         # Scope
@@ -262,7 +234,7 @@ class Authorizer(object):
             e = self.error
         else:
             e = AccessDenied("Access Denied.")
-        parameters = {'error': e.error, 'error_description': u'%s' % e.message}
+        parameters = {'error': e.error, 'error_description': u'%s' % str(e)}
         if self.state is not None:
             parameters['state'] = self.state
         redirect_uri = self.redirect_uri

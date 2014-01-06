@@ -87,6 +87,9 @@ class Client(models.Model):
         default=KeyGenerator(CLIENT_SECRET_LENGTH))
     redirect_uri = models.URLField(null=True)
 
+    def __unicode__(self):
+        return self.name
+
 
 class AccessRange(models.Model):
     """Stores access range data, also known as scope.
@@ -105,6 +108,8 @@ class AccessRange(models.Model):
     key = models.CharField(unique=True, max_length=SCOPE_LENGTH, db_index=True)
     description = models.TextField(blank=True)
 
+    def __unicode__(self):
+        return self.key
 
 class AccessToken(models.Model):
     """Stores access token data.
@@ -156,7 +161,6 @@ class AccessToken(models.Model):
     scope = models.ManyToManyField(AccessRange)
     refreshable = models.BooleanField(default=REFRESHABLE)
 
-
 class Code(models.Model):
     """Stores authorization code data.
 
@@ -190,6 +194,9 @@ class Code(models.Model):
         default=TimestampGenerator(CODE_EXPIRATION))
     redirect_uri = models.URLField(null=True)
     scope = models.ManyToManyField(AccessRange)
+
+    def __unicode__(self):
+        return self.key
 
 
 class MACNonce(models.Model):

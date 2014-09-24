@@ -9,10 +9,13 @@ from hashlib import sha512
 from uuid import uuid4
 from django.db import models
 from django.contrib.auth.models import User
+from django.conf import settings
 from .consts import CLIENT_KEY_LENGTH, CLIENT_SECRET_LENGTH
 from .consts import ACCESS_TOKEN_LENGTH, REFRESH_TOKEN_LENGTH
 from .consts import ACCESS_TOKEN_EXPIRATION, MAC_KEY_LENGTH, REFRESHABLE
 from .consts import CODE_KEY_LENGTH, CODE_EXPIRATION
+
+User = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
 
 class TimestampGenerator(object):

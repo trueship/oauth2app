@@ -238,7 +238,6 @@ class Authenticator(object):
         """
         response = HttpResponse(
             content=content,
-            mimetype=mimetype,
             content_type=content_type)
         if not self.attempted_validation:
             response['WWW-Authenticate'] = 'Bearer realm="%s"' % REALM

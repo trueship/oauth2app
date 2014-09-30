@@ -208,8 +208,7 @@ class Authorizer(object):
             access_ranges = set(self.access_ranges.values_list('key', flat=True))
             difference = access_ranges.symmetric_difference(self.scope)
             if len(difference) != 0:
-                raise InvalidScope("Following access ranges do not "
-                    "exist: %s" % ', '.join(difference))
+                raise InvalidScope("The following scopes do not exist: %s" % ', '.join(difference))
             if self.authorized_scope is not None:
                 new_scope = self.scope - self.authorized_scope
                 if len(new_scope) > 0:
@@ -234,7 +233,7 @@ class Authorizer(object):
             e = self.error
         else:
             e = AccessDenied("Access Denied.")
-        parameters = {'error': e.error, 'error_description': u'%s' % str(e)}
+        parameters = {'error': e.error, 'error_description': u'%s' % str(e), 'app_name': u'%s' % str(self.client.name)}
         if self.state is not None:
             parameters['state'] = self.state
         redirect_uri = self.redirect_uri

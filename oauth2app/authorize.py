@@ -125,6 +125,8 @@ class Authorizer(object):
         else:
             self.authorized_scope = set([x.key for x in scope])
 
+        self.access_token = None
+
     def __call__(self, request):
         """Validate the request. Returns an error redirect if the
         request fails authorization, or a MissingRedirectURI if no
@@ -313,6 +315,8 @@ class Authorizer(object):
                 elif self.authentication_method == BEARER:
                     fragments["token_type"] = "bearer"
                 access_token.save()
+                # Assign access token to self instance to be able to operate with it outside of the class
+                self.access_token = access_token
             if self.state is not None:
                 parameters['state'] = self.state
             redirect_uri = add_parameters(self.redirect_uri, parameters)

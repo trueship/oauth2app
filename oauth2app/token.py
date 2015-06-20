@@ -6,12 +6,9 @@
 
 try: import simplejson as json
 except ImportError: import json
+import re
 from base64 import b64encode
 from django.http import HttpResponse
-try:
-    from django.http.request import absolute_http_url_re  # Django 1.5+
-except ImportError:
-    from django.http import absolute_http_url_re
 from django.contrib.auth import authenticate
 from django.views.decorators.csrf import csrf_exempt
 from .exceptions import OAuth2Exception
@@ -21,6 +18,9 @@ from .consts import REFRESHABLE
 from .lib.uri import normalize
 from .models import Client, AccessRange, Code, AccessToken, TimestampGenerator
 from .models import KeyGenerator
+
+
+absolute_http_url_re = re.compile(r"^https?://", re.I)
 
 
 class AccessTokenException(OAuth2Exception):
@@ -184,7 +184,7 @@ class TokenGenerator(object):
             self.password = request.REQUEST.get('password')
             # Optional json callback
             self.callback = request.REQUEST.get('callback')
-        
+
         if self.scope is not None:
             self.scope = set(self.scope.split())
         self.request = request
@@ -223,7 +223,7 @@ class TokenGenerator(object):
             self.client = Client.objects.get(key=self.client_id)
         except Client.DoesNotExist:
             raise InvalidClient("client_id %s doesn't exist" % self.client_id)
-        
+
         # Check/Set redirect uri
         if self.redirect_uri is None:
             if self.client.redirect_uri is None:

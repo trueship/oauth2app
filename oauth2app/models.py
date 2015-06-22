@@ -35,6 +35,10 @@ class TimestampGenerator(object):
     def __call__(self):
         return int(time.time()) + self.seconds
 
+    def deconstruct(self):
+        kwargs = {}
+        return ('oauth2app.oauth2app.models.TimestampGenerator', [], kwargs)
+
 
 class KeyGenerator(object):
     """Callable Key Generator that returns a random keystring.
@@ -52,7 +56,7 @@ class KeyGenerator(object):
         return sha512(uuid4().hex).hexdigest()[0:self.length]
 
     def deconstruct(self):
-        kwargs = {}
+        kwargs = {'length': 30}
         return ('oauth2app.oauth2app.models.KeyGenerator', [], kwargs)
 
 

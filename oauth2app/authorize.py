@@ -302,6 +302,7 @@ class Authorizer(object):
                     client=self.client)
                 access_token.scope = access_ranges
                 fragments['access_token'] = access_token.token
+                fragments['user'] = self.user.username
                 if access_token.refreshable:
                     fragments['refresh_token'] = access_token.refresh_token
                 fragments['expires_in'] = ACCESS_TOKEN_EXPIRATION

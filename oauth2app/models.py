@@ -36,8 +36,7 @@ class TimestampGenerator(object):
         return int(time.time()) + self.seconds
 
     def deconstruct(self):
-        kwargs = {}
-        return ('oauth2app.oauth2app.models.TimestampGenerator', [], kwargs)
+        return ('oauth2app.oauth2app.models.TimestampGenerator', [], {})
 
 
 class KeyGenerator(object):
@@ -49,7 +48,7 @@ class KeyGenerator(object):
 
     *Returns str*
     """
-    def __init__(self, length):
+    def __init__(self, length=16):
         self.length = length
 
     def __call__(self):
@@ -94,6 +93,7 @@ class Client(models.Model):
         max_length=CLIENT_SECRET_LENGTH,
         default=KeyGenerator(CLIENT_SECRET_LENGTH))
     redirect_uri = models.URLField(null=True)
+    approved = models.BooleanField(default=True)
 
     def __unicode__(self):
         return self.name

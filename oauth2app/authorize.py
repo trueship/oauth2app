@@ -6,6 +6,7 @@
 import re
 from django.http import HttpResponseRedirect
 from urllib import urlencode
+from urlparse import urlparse
 from .consts import ACCESS_TOKEN_EXPIRATION, REFRESHABLE
 from .consts import CODE, TOKEN, CODE_AND_TOKEN
 from .consts import AUTHENTICATION_METHOD, MAC, BEARER, MAC_KEY_LENGTH
@@ -185,7 +186,9 @@ class Authorizer(object):
                 raise MissingRedirectURI("No redirect_uri"
                     "provided or registered.")
         elif self.client.redirect_uri is not None:
-            if normalize(self.redirect_uri) != normalize(self.client.redirect_uri):
+            parsed_uri = urlparse(normalize(self.redirect_uri))
+            parsed_client_uri = urlparse(normalize(self.client.redirect_uri))
+            if parsed_uri.netloc != parsed_client_uri.netloc:
                 self.redirect_uri = self.client.redirect_uri
                 raise InvalidRequest("Registered redirect_uri doesn't "
                     "match provided redirect_uri.")

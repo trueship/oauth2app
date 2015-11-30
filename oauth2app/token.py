@@ -16,6 +16,7 @@ from .consts import ACCESS_TOKEN_EXPIRATION, REFRESH_TOKEN_LENGTH
 from .consts import AUTHENTICATION_METHOD, MAC, BEARER, MAC_KEY_LENGTH
 from .consts import REFRESHABLE
 from .lib.uri import normalize
+from .lib.request import get_from_request_data
 from .models import Client, AccessRange, Code, AccessToken, TimestampGenerator
 from .models import KeyGenerator
 
@@ -165,25 +166,25 @@ class TokenGenerator(object):
             # Optional json callback
             self.callback = data.get('callback')
         else:
-            self.grant_type = request.REQUEST.get('grant_type')
-            self.client_id = request.REQUEST.get('client_id')
+            self.grant_type = get_from_request_data(request, 'grant_type')
+            self.client_id = get_from_request_data(request, 'client_id')
             self.client_secret = request.POST.get('client_secret')
-            self.scope = request.REQUEST.get('scope')
+            self.scope = get_from_request_data(request, 'scope')
 
             # authorization_code, see 4.1.3.  Access Token Request
             if code_key:
                 self.code_key = code_key
             else:
-                self.code_key = request.REQUEST.get('code')
-            self.redirect_uri = request.REQUEST.get('redirect_uri')
+                self.code_key = get_from_request_data(request, 'code')
+            self.redirect_uri = get_from_request_data(request, 'redirect_uri')
             # refresh_token, see 6.  Refreshing an Access Token
-            self.refresh_token = request.REQUEST.get('refresh_token')
+            self.refresh_token = get_from_request_data('refresh_token')
             # password, see 4.3.2. Access Token Request
-            self.email = request.REQUEST.get('email')
-            self.username = request.REQUEST.get('username')
-            self.password = request.REQUEST.get('password')
+            self.email = get_from_request_data(request, 'email')
+            self.username = get_from_request_data(request, 'username')
+            self.password = get_from_request_data(request, 'password')
             # Optional json callback
-            self.callback = request.REQUEST.get('callback')
+            self.callback = get_from_request_data(request, 'callback')
 
         if self.scope is not None:
             self.scope = set(self.scope.split())

@@ -12,6 +12,7 @@ from .consts import CODE, TOKEN, CODE_AND_TOKEN
 from .consts import AUTHENTICATION_METHOD, MAC, BEARER, MAC_KEY_LENGTH
 from .exceptions import OAuth2Exception
 from .lib.uri import add_parameters, add_fragments, normalize
+from .lib.request import get_from_request_data
 from .models import Client, AccessRange, Code, AccessToken, KeyGenerator
 
 
@@ -155,13 +156,13 @@ class Authorizer(object):
         * *request:* Django HttpRequest object.
 
         *Returns None*"""
-        self.response_type = request.REQUEST.get('response_type')
-        self.client_id = request.REQUEST.get('client_id')
-        self.redirect_uri = request.REQUEST.get('redirect_uri')
-        self.scope = request.REQUEST.get('scope')
+        self.response_type = get_from_request_data(request, 'response_type')
+        self.client_id = get_from_request_data(request, 'client_id')
+        self.redirect_uri = get_from_request_data(request, 'redirect_uri')
+        self.scope = get_from_request_data(request, 'scope')
         if self.scope is not None:
             self.scope = set(self.scope.split())
-        self.state = request.REQUEST.get('state')
+        self.state = get_from_request_data(request, 'state')
         self.user = request.user
         self.request = request
         try:

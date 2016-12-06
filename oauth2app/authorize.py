@@ -284,7 +284,7 @@ class Authorizer(object):
         if not self.valid:
             raise UnvalidatedRequest("This request is invalid or has not "
                 "been validated.")
-        if self.user.is_authenticated():
+        if self.user and self.user.is_authenticated():
             parameters = {}
             fragments = {}
             if self.scope is not None:
